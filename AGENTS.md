@@ -18,6 +18,6 @@ Do not restyle the debug UI from `design/DESIGN.md`. Sunset is where the identit
 
 - `npm run build` must pass.
 - `window.__automixSelfTest()` in the debug UI (and Sunset, same helper) analyzes a synthetic 124 BPM / A minor loop. Expect BPM ≈ 123.93 and Camelot 8A.
-- `npm run bot:dry` should listen on `ws://127.0.0.1:8765` without a Discord token.
+- After `npm run bot:install`, `npm run bot:dry` should listen on `ws://127.0.0.1:8765` without a Discord token. Root `npm install` does not install bot packages.
 - Missing File System Access API must tell the user to use Chrome.
 - Do not commit `bot/.env`. Do not use real Discord credentials in tests.

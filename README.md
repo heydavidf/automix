@@ -6,7 +6,7 @@ It is built for Chrome on a desktop. Point it at a folder of MP3, FLAC, WAV, or 
 
 ## Example
 
-After the app is running, open the debug UI and run the built-in self-test in the Chrome console. It analyzes a synthetic 124 BPM loop, so you do not need a music folder:
+After the app is running, open either UI and run the built-in self-test in the Chrome console. It analyzes a synthetic 124 BPM loop, so you do not need a music folder:
 
 ```js
 await window.__automixSelfTest()
@@ -32,10 +32,10 @@ npm run dev
 
 Then in Chrome:
 
-1. Open http://localhost:5173/sunset.html for the Sunset player (the main UI).
-2. Open http://localhost:5173/ for the debug / lab UI.
-3. Click **Choose folder** and pick a local music folder. Analysis fills in BPM, key, and energy (cached in IndexedDB, so each file is only analyzed once).
-4. When at least two tracks are analyzed, start Auto-mix. Blend length and energy direction are in the Auto-mix / machine-params controls.
+1. Open http://localhost:5173/sunset.html for the Sunset player (the main UI). It opens on Mix.
+2. Click **LIBRARY** (or open http://localhost:5173/sunset.html#/library), then **Choose folder**, and pick a local music folder. Analysis fills in BPM, key, and energy (cached in IndexedDB, so each file is only analyzed once).
+3. Open http://localhost:5173/ for the debug / lab UI if you want extra controls. **Choose folder** is on that first screen.
+4. When at least two tracks are analyzed, start Auto-mix. Blend length and energy direction are in Mix / machine-params (Sunset) or the Auto-mix panel (debug).
 
 Chrome is required because AutoMix uses the File System Access API to read a folder you choose. Other browsers show an explicit message and stop.
 
@@ -64,10 +64,13 @@ Possible costs: none for local playback. Discord is free for a small bot. Google
 Audio logic lives in `src/lib`. Do not copy engine code into `src/sunset/`. Visual identity notes are in [design/DESIGN.md](design/DESIGN.md). The shipped Mix layout is Mix + Library, not the older Tidy Rack mock.
 
 ```sh
-npm run build     # typecheck + production build
-npm run preview   # serve the production build
-npm run bot:dry   # local broadcast bot without Discord
+npm run build         # typecheck + production build
+npm run preview       # serve the production build
+npm run bot:install   # once; the bot has its own packages
+npm run bot:dry       # local broadcast bot without Discord (needs bot:install)
 ```
+
+Root `npm install` does not install the bot. `npm run bot:dry` or `npm run bot` without `bot:install` fails looking for `ws`. See [bot/README.md](bot/README.md).
 
 ## Compatibility and limitations
 

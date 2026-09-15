@@ -38,9 +38,17 @@ browser drops, so a page refresh doesn't bounce it.
 
 ## Testing without Discord
 
-`npm run bot:dry` runs the same WebSocket server with no token/Discord at all: it validates
+The bot is a second package. From the repo root, install it once, then dry-run:
+
+```
+npm run bot:install
+npm run bot:dry
+```
+
+That runs the same WebSocket server with no token/Discord at all: it validates
 that each session starts with a WebM (EBML) header, counts bytes, and logs now-playing frames.
 The Broadcast panel shows "(dry-run bot)" when connected to it.
+`npm run bot:dry` without `bot:install` fails with a missing `ws` package.
 
 ## Notes
 

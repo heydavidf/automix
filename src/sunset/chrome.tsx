@@ -5,8 +5,7 @@ import type { CamelotKey } from '../lib/analysis/types';
 
 export const APP_VERSION = 'V0.5';
 
-/* Sunset Desktop chrome, ported from design/prototype/src/components/Chrome.tsx.
-   Nav is a tiny hash router (no dependency): #/ mix, #/library. */
+/* Sunset Desktop chrome. Nav is a tiny hash router (no dependency): #/ mix, #/library. */
 
 export type Screen = 'mix' | 'library';
 
