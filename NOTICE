@@ -1,0 +1,52 @@
+AutoMix
+Copyright (C) 2026 David Finnegan
+
+This program is free software under the GNU Affero General Public License
+v3.0. See LICENSE.
+
+Third-party software included by this project:
+
+essentia.js
+  License: GNU Affero General Public License v3.0
+  Copyright Music Technology Group, Universitat Pompeu Fabra
+  https://github.com/MTG/essentia.js
+
+signalsmith-stretch
+  License: MIT
+  Copyright Geraint Luff / Signalsmith Audio
+
+music-metadata
+  License: MIT
+  Copyright Borewit
+
+idb
+  License: ISC
+  Copyright Jake Archibald
+
+react, react-dom
+  License: MIT
+  Copyright Meta Platforms, Inc. and affiliates
+
+zustand
+  License: MIT
+  Copyright Paul Henschel
+
+web-audio-beat-detector (declared dependency; not imported by application source)
+  License: MIT
+  Copyright Christoph Guttandin
+
+vite, @vitejs/plugin-react, tailwindcss, @tailwindcss/vite
+  License: MIT
+
+typescript
+  License: Apache-2.0
+  Copyright Microsoft Corporation
+
+discord.js, @discordjs/voice (optional bot)
+  License: Apache-2.0
+
+ws (optional bot)
+  License: MIT
+
+libsodium-wrappers (optional bot)
+  License: ISC
