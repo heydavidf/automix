@@ -23,19 +23,27 @@ That check proves analysis is working. It does not prove mix quality on real mus
 
 ## Start here
 
-Tested on macOS with Node 25, npm 11, and Chrome. Setup is about one `npm install` and a dev server.
+You run AutoMix on your own computer. It is not a public website.
+
+You need [Node.js](https://nodejs.org/) (20 or newer; 25 is what this was tested with), npm, Git, and **Chrome** on a desktop.
 
 ```sh
+git clone https://github.com/heydavidf/automix.git
+cd automix
 npm install
 npm run dev
 ```
 
-Then in Chrome:
+Vite prints a **Local** address in the terminal (often `http://localhost:5173/`, sometimes `http://127.0.0.1:5173/`, and a different port if 5173 is already taken). Use that printed address in Chrome — do not assume a fixed URL.
 
-1. Open http://localhost:5173/sunset.html for the Sunset player (the main UI). It opens on Mix.
-2. Click **LIBRARY** (or open http://localhost:5173/sunset.html#/library), then **Choose folder**, and pick a local music folder. Analysis fills in BPM, key, and energy (cached in IndexedDB, so each file is only analyzed once).
-3. Open http://localhost:5173/ for the debug / lab UI if you want extra controls. **Choose folder** is on that first screen.
-4. When at least two tracks are analyzed, start Auto-mix. Blend length and energy direction are in Mix / machine-params (Sunset) or the Auto-mix panel (debug).
+- Main player: add `sunset.html` to it. It opens on Mix.
+- Lab / extra controls: the same address with nothing extra.
+
+Then:
+
+1. Click **LIBRARY**, then **Choose folder**, and pick a local music folder (MP3, FLAC, WAV, or M4A). Analysis fills in BPM, key, and energy (cached in IndexedDB, so each file is only analyzed once).
+2. When at least two tracks are analyzed, go back to Mix and press **Start Auto-Mix**. Blend length and energy direction are in Mix / machine-params.
+3. The lab UI has **Choose folder** on its first screen, plus extra tools (beatmatch lab, jam synth, broadcast panel).
 
 Chrome is required because AutoMix uses the File System Access API to read a folder you choose. Other browsers show an explicit message and stop.
 
@@ -50,22 +58,22 @@ For an agent-assisted setup:
 3. Auto-DJ picks a harmonically compatible next track, time-stretches to match tempo, and crossfades on a phrase boundary. Weak beat grids fall back to a plain 12-second crossfade.
 4. Play history (including optional stars and notes) stays in IndexedDB in that browser.
 
-No music files are uploaded. Optional Discord broadcast is a **local** Node process: the browser sends the mix to `127.0.0.1` over WebSocket, and the bot plays it in a voice channel you configure. See [bot/README.md](bot/README.md). Live Discord needs a bot token you create; that path has not been verified in this public package.
+No music files are uploaded. Optional Discord broadcast is a **local** bot on this computer only (debug UI **Go live**, not the Sunset player). See [bot/README.md](bot/README.md). That path is coded but has not been verified with a real Discord bot token.
 
 Possible costs: none for local playback. Discord is free for a small bot. Google Fonts load for the Sunset UI when you are online.
 
 ## Two UIs, one engine
 
-| URL | What it is |
+| Path on the printed Local address | What it is |
 | --- | --- |
-| `/sunset.html` | Skinned player (Mix + Library). This is the product UI. |
-| `/` | Debug / lab UI with extra tools: beatmatch lab, jam synth, broadcast panel. |
+| `sunset.html` | Skinned player (Mix + Library). This is the product UI. |
+| *(nothing extra)* | Debug / lab UI with extra tools: beatmatch lab, jam synth, broadcast panel. |
 
 Audio logic lives in `src/lib`. Do not copy engine code into `src/sunset/`. Visual identity notes are in [design/DESIGN.md](design/DESIGN.md). The shipped Mix layout is Mix + Library, not the older Tidy Rack mock.
 
 ```sh
 npm run build         # typecheck + production build
-npm run preview       # serve the production build
+npm run preview       # serve the production build (use the Local URL it prints; not the same port as npm run dev)
 npm run bot:install   # once; the bot has its own packages
 npm run bot:dry       # local broadcast bot without Discord (needs bot:install)
 ```
@@ -88,6 +96,6 @@ Update by pulling a newer version and running `npm install` again. IndexedDB dat
 
 To remove the app, delete the clone. That does not delete Chrome's IndexedDB for the origin you used, or a Discord bot you created in the developer portal.
 
-This is a personal project. After the repository is public, use GitHub issues for ordinary bugs. Do not paste bot tokens, `.env` files, or other secrets into issues. For a suspected security problem, use GitHub's private vulnerability reporting once it is enabled on the remote (it is not enabled yet because nothing has been published).
+This is a personal project. Use [GitHub issues](https://github.com/heydavidf/automix/issues) for ordinary bugs. Do not paste bot tokens, `.env` files, or other secrets into issues. For a suspected security problem, use GitHub's private vulnerability reporting on this repository.
 
 Copyright (C) 2026 David Finnegan. Licensed under the GNU Affero General Public License v3.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
