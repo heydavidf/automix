@@ -1,0 +1,67 @@
+# Checks for every push to main, every pull request, and once a week (to catch
+# newly published vulnerabilities). The same commands are listed in AGENTS.md.
+# Install scripts are disabled: no dependency code runs at install time.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read # gitleaks-action lists a pull request's commits
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      - name: Install (lockfile must match, no install scripts)
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm --prefix bot ci --ignore-scripts --no-audit --no-fund
+
+      - name: Type-check and build app
+        run: npm run build
+
+      - name: Type-check bot and its tests
+        run: npx tsc --noEmit -p bot/tsconfig.json
+
+      - name: Tests (bot in dry-run mode, no Discord)
+        run: npm test
+
+      - name: Known vulnerabilities in shipped dependencies (high and above)
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm --prefix bot audit --omit=dev --audit-level=high
+
+      - name: Tripwire (personal paths, junk files, silenced checks)
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$BASE_REF" ] && git cat-file -e "$BASE_REF" 2>/dev/null; then bash .github/tripwire.sh "$BASE_REF"; else echo "::warning::No base commit available, so newly silenced checks were not looked for"; bash .github/tripwire.sh; fi
+
+      - name: Secrets (gitleaks)
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

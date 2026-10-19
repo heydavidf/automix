@@ -1,0 +1,17 @@
+# Keeps the pinned action commits in .github/workflows/ci.yml up to date
+# (monthly, one grouped pull request, only versions at least 7 days old).
+# npm security fixes come from "Dependabot security updates" in the repository
+# settings. Routine npm version updates are deliberately off to keep pull
+# requests few for a one-person project.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+    open-pull-requests-limit: 2

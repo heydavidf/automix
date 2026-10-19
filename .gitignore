@@ -4,4 +4,8 @@ dist
 bot/.env
 .DS_Store
 *.local
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
 public/testdata

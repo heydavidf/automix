@@ -50,6 +50,17 @@ that each session starts with a WebM (EBML) header, counts bytes, and logs now-p
 The Broadcast panel shows "(dry-run bot)" when connected to it.
 `npm run bot:dry` without `bot:install` fails with a missing `ws` package.
 
+## Tests
+
+From the repo root, after `npm run bot:install`:
+
+```
+npm test
+```
+
+The tests start the bot in dry-run mode on a spare port (never Discord) and check that only the
+player can connect and that malformed messages are rejected without crashing the bot.
+
 ## Notes
 
 - Needs Node ≥ 23 (runs TypeScript directly via type-stripping; erasable syntax only).
@@ -58,4 +69,13 @@ The Broadcast panel shows "(dry-run bot)" when connected to it.
 - One MediaRecorder per bot session (the `ready {session}` message): a WebM stream's header
   exists only in a fresh recorder's first chunk. The browser side handles this; if you ever
   see "stream header invalid" in the panel, that rule got broken.
-- The WS server binds to 127.0.0.1 only. `--debug` prints @discordjs/voice's dependency report.
+- The WS server binds to 127.0.0.1 only, and accepts only the AutoMix player itself:
+  `http://localhost:5173` or `http://127.0.0.1:5173` (`npm run dev`), or the same on port 4173
+  (`npm run preview`). Any other web page that tries to connect is refused and logged as
+  `refused connection from ...`. If you change the player's port in `vite.config.ts`, update
+  `PLAYER_ORIGINS` in `bot/src/index.ts` to match. This keeps websites out. It cannot stop another
+  program already running on your computer, and any other web server you run on port 5173 or
+  4173 counts as the player too.
+- Every text message from the browser is checked. Anything malformed is logged as
+  `rejected message from browser: ...` and ignored.
+- `--debug` prints @discordjs/voice's dependency report.

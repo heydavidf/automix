@@ -34,7 +34,7 @@ npm install
 npm run dev
 ```
 
-Vite prints a **Local** address in the terminal (often `http://localhost:5173/`, sometimes `http://127.0.0.1:5173/`, and a different port if 5173 is already taken). Use that printed address in Chrome — do not assume a fixed URL.
+Vite prints a **Local** address in the terminal: `http://localhost:5173/`. Use that address in Chrome. The port is fixed. If another program is already using port 5173, `npm run dev` stops with "Port 5173 is already in use". Close the other program (often another `npm run dev`) and run it again.
 
 - Main player: add `sunset.html` to it. It opens on Mix.
 - Lab / extra controls: the same address with nothing extra.
@@ -58,7 +58,7 @@ For an agent-assisted setup:
 3. Auto-DJ picks a harmonically compatible next track, time-stretches to match tempo, and crossfades on a phrase boundary. Weak beat grids fall back to a plain 12-second crossfade.
 4. Play history (including optional stars and notes) stays in IndexedDB in that browser.
 
-No music files are uploaded. Optional Discord broadcast is a **local** bot on this computer only (debug UI **Go live**, not the Sunset player). See [bot/README.md](bot/README.md). That path is coded but has not been verified with a real Discord bot token.
+No music files are uploaded. Optional Discord broadcast is a **local** bot on this computer only (debug UI **Go live**, not the Sunset player). The bot accepts only pages from the player's own addresses (`localhost` or `127.0.0.1` on ports 5173 and 4173); other websites open in your browser are refused. See [bot/README.md](bot/README.md). That path is coded but has not been verified with a real Discord bot token.
 
 Possible costs: none for local playback. Discord is free for a small bot. Google Fonts load for the Sunset UI when you are online.
 
@@ -73,22 +73,28 @@ Audio logic lives in `src/lib`. Do not copy engine code into `src/sunset/`. Visu
 
 ```sh
 npm run build         # typecheck + production build
-npm run preview       # serve the production build (use the Local URL it prints; not the same port as npm run dev)
+npm run preview       # serve the production build at http://localhost:4173/ (fixed port)
 npm run bot:install   # once; the bot has its own packages
 npm run bot:dry       # local broadcast bot without Discord (needs bot:install)
+npm test              # automated bot tests, no Discord (needs bot:install and the bot's Node version)
 ```
 
 Root `npm install` does not install the bot. `npm run bot:dry` or `npm run bot` without `bot:install` fails looking for `ws`. See [bot/README.md](bot/README.md).
 
+`npm run preview` uses a different address from `npm run dev`, and Chrome keeps the library separately for each address, so the preview starts with an empty library.
+
+Contributing (people and coding agents): [AGENTS.md](AGENTS.md) lists the project map and every check, and [CONTRIBUTING.md](CONTRIBUTING.md) explains pull requests. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
 ## Compatibility and limitations
 
-- **Tested here:** install and production build on macOS arm64, Node 25.6.0, npm 11.8.0. Debug UI self-test in Chrome. Bot dry-run (no Discord).
+- **Tested here:** install and production build on macOS arm64, Node 25.6.0, npm 11.8.0. Debug UI self-test in Chrome. Bot dry-run (no Discord) and the automated bot tests (`npm test`).
+- **Checked automatically:** CI (`.github/workflows/ci.yml`) runs the build, type-checks, bot tests and dependency audits on Ubuntu with Node 24 for every push to `main`, every pull request and once a week.
 - **Not tested in this package:** live Discord, Safari/Firefox, Windows/Linux, long real-music listening sessions, Mixxx key/BPM agreement.
 - Beat/key analysis uses [essentia.js](https://github.com/MTG/essentia.js) (AGPL-3.0). Time-stretch uses [signalsmith-stretch](https://github.com/Signalsmith-Audio/signalsmith-stretch) (MIT).
 - Downbeat placement on real music is the main open quality risk. Synthetic loops cannot prove it.
 - `web-audio-beat-detector` is listed in `package.json` but is not imported by the app.
 - Sunset UI loads fonts from Google Fonts. The debug UI does not.
-- The optional Discord bot's lockfile still reports `undici` issues via `discord.js`. Live Discord is not part of the verified path. Do not run `npm audit fix` in `bot/` without re-testing.
+- The optional Discord bot uses `discord.js` 14.27.0, updated on 2026-10-19 to pick up an `undici` security fix. Live Discord has not been re-tested since.
 
 ## Update, remove, and get help
 
@@ -96,6 +102,6 @@ Update by pulling a newer version and running `npm install` again. IndexedDB dat
 
 To remove the app, delete the clone. That does not delete Chrome's IndexedDB for the origin you used, or a Discord bot you created in the developer portal.
 
-This is a personal project. Use [GitHub issues](https://github.com/heydavidf/automix/issues) for ordinary bugs. Do not paste bot tokens, `.env` files, or other secrets into issues. For a suspected security problem, use GitHub's private vulnerability reporting on this repository.
+This is a personal project. Use [GitHub issues](https://github.com/heydavidf/automix/issues) for ordinary bugs. Do not paste bot tokens, `.env` files, or other secrets into issues. For a suspected security problem, use GitHub's private vulnerability reporting on this repository, as described in [SECURITY.md](SECURITY.md).
 
 Copyright (C) 2026 David Finnegan. Licensed under the GNU Affero General Public License v3.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
