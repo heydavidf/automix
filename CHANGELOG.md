@@ -2,7 +2,7 @@
 
 Notable changes to AutoMix. Version numbers follow [Semantic Versioning](https://semver.org/). While the version starts with 0, a minor version can change behavior.
 
-## Unreleased (proposed 0.2.0)
+## 0.2.0 (2026-10-20)
 
 ### Security
 
