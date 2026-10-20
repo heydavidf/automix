@@ -1,7 +1,7 @@
 {
   "name": "automix",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=20"
@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "bot": "npm --prefix bot run start",
     "bot:dry": "node bot/src/index.ts --dry-run",
-    "bot:install": "npm --prefix bot install"
+    "bot:install": "npm --prefix bot install",
+    "test": "npm --prefix bot test"
   },
   "dependencies": {
     "essentia.js": "^0.1.3",

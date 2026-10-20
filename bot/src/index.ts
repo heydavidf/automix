@@ -12,6 +12,20 @@ const DRY_RUN = process.argv.includes('--dry-run');
 const DEBUG = process.argv.includes('--debug');
 const WS_PORT = Number(process.env.WS_PORT ?? 8765);
 
+// Web pages allowed to connect: the AutoMix player under `npm run dev` (port
+// 5173) and `npm run preview` (port 4173). Both ports are fixed in
+// vite.config.ts; keep the two lists in sync. Binding to 127.0.0.1 keeps other
+// computers out, but any website open in the browser can still reach this
+// port. Browsers send the page's real Origin with every WebSocket handshake
+// and a page cannot change it, so this check keeps other websites out. It does
+// not stop other programs already running on this computer.
+const PLAYER_ORIGINS = new Set([
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:4173',
+  'http://127.0.0.1:4173',
+]);
+
 // First bytes of every WebM stream (EBML magic). A session whose first chunk
 // doesn't start with this can never demux - it means a MediaRecorder was
 // reused across sessions on the browser side.
@@ -83,7 +97,7 @@ if (DRY_RUN) {
   });
 }
 
-// ---- WebSocket server (localhost only - no auth on this socket) ----
+// ---- WebSocket server (localhost only, AutoMix player pages only) ----
 
 let client: WebSocket | null = null;
 let session = 0;
@@ -102,13 +116,52 @@ function pushStatus() {
 sink.onStatusChange(pushStatus);
 setInterval(pushStatus, 5_000).unref();
 
-async function handleText(raw: string) {
-  let msg: { type?: string } & Record<string, unknown>;
+type ClientMessage = { type: 'start' } | { type: 'stop' } | { type: 'nowplaying'; np: NowPlaying };
+
+/** Short, quoted form of an untrusted value for the log. */
+function quote(value: unknown): string {
+  return (JSON.stringify(value) ?? String(value)).slice(0, 80);
+}
+
+// Turns one text frame from the browser into a message the bot understands,
+// or returns the reason it was rejected. Never throws: bad JSON, null, arrays,
+// unknown types and wrong field types are all just rejected.
+function parseMessage(raw: string): ClientMessage | string {
+  let data: unknown;
   try {
-    msg = JSON.parse(raw);
+    data = JSON.parse(raw);
   } catch {
-    return log('ignoring non-JSON text frame');
+    return 'not JSON';
   }
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return 'not a JSON object';
+  const msg = data as Record<string, unknown>;
+  switch (msg.type) {
+    case 'start':
+      return { type: 'start' };
+    case 'stop':
+      return { type: 'stop' };
+    case 'nowplaying': {
+      const { fileKey, title, artist, bpm, camelot } = msg;
+      if (
+        typeof fileKey !== 'string' ||
+        typeof title !== 'string' ||
+        typeof artist !== 'string' ||
+        typeof camelot !== 'string'
+      ) {
+        return 'nowplaying needs text fileKey, title, artist and camelot';
+      }
+      // JSON turns NaN into null; treat that like the player's own "unknown" (0).
+      if (bpm !== null && typeof bpm !== 'number') return 'nowplaying bpm must be a number';
+      return { type: 'nowplaying', np: { fileKey, title, artist, bpm: bpm ?? 0, camelot } };
+    }
+    default:
+      return `unknown type ${quote(msg.type)}`;
+  }
+}
+
+async function handleText(raw: string) {
+  const msg = parseMessage(raw);
+  if (typeof msg === 'string') return log(`rejected message from browser: ${msg}`);
   switch (msg.type) {
     case 'start': {
       try {
@@ -128,7 +181,7 @@ async function handleText(raw: string) {
       break;
     }
     case 'nowplaying':
-      sink.setNowPlaying(msg as unknown as NowPlaying);
+      sink.setNowPlaying(msg.np);
       break;
     case 'stop':
       if (sessionLive) {
@@ -137,8 +190,6 @@ async function handleText(raw: string) {
       }
       pushStatus();
       break;
-    default:
-      log('unknown message type:', msg.type);
   }
 }
 
@@ -158,7 +209,16 @@ function handleBinary(data: RawData) {
   sink.write(chunk);
 }
 
-const wss = new WebSocketServer({ host: '127.0.0.1', port: WS_PORT });
+const wss = new WebSocketServer({
+  host: '127.0.0.1',
+  port: WS_PORT,
+  // Runs before 'connection', so a refused page never replaces the player.
+  verifyClient: ({ origin }: { origin?: string }) => {
+    if (origin && PLAYER_ORIGINS.has(origin)) return true;
+    log(`refused connection from ${origin ? quote(origin) : 'a page with no Origin header'} (not the AutoMix player)`);
+    return false;
+  },
+});
 
 wss.on('connection', (ws) => {
   log('browser connected');
@@ -169,7 +229,7 @@ wss.on('connection', (ws) => {
 
   ws.on('message', (data, isBinary) => {
     if (isBinary) handleBinary(data);
-    else void handleText(data.toString());
+    else handleText(data.toString()).catch((err) => log('error handling message:', err));
   });
   ws.on('close', () => {
     if (client !== ws) return;
