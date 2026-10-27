@@ -2,6 +2,12 @@
 
 Notable changes to AutoMix. Version numbers follow [Semantic Versioning](https://semver.org/). While the version starts with 0, a minor version can change behavior.
 
+## Unreleased
+
+### Security
+
+- The broadcast bot's HTTP library, undici, is updated from 6.28.1 to 6.29.1. It fixes two denial-of-service advisories published on 2026-10-23: a reply with too many content encodings could crash the bot ([GHSA-xjj6-f33q-929c](https://github.com/advisories/GHSA-xjj6-f33q-929c)), and an endless event stream could use up its memory ([GHSA-4qv8-2p9j-2685](https://github.com/advisories/GHSA-4qv8-2p9j-2685)).
+
 ## 0.2.0 (2026-10-20)
 
 ### Security
